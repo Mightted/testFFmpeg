@@ -28,7 +28,7 @@ IF(WIN32)
     add_executable(testFfmpeg main.cpp
             VideoState.h
             VideoState.cpp
-            AudioParams.cpp AudioParams.h AVCommon.cpp AVCommon.h Audio.cpp Audio.h Video.cpp Video.h)
+            AudioParams.cpp AudioParams.h AVCommon.cpp AVCommon.h Audio.cpp Audio.h Video.cpp Video.h codec/MyPacket.cpp codec/MyPacket.h codec/MyFrame.cpp codec/MyFrame.h codec/DecodeHelper.cpp codec/DecodeHelper.h Player.cpp Player.h)
 
     target_link_libraries(
             testFfmpeg

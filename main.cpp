@@ -1,13 +1,17 @@
 #include "iostream"
-#include "SDL.h"
+#include "SDL2/SDL.h"
 #include "VideoState.h"
+#include "Player.h"
 
 using namespace std;
 
 
 int main(int argc, char *argv[]) {
-    VideoState is("../bin/input.mp4");
-    is.loop();
+    Player player;
+    player.init("../bin/input.mp4", FLAG_INIT_VIDEO | FLAG_INIT_AUDIO);
+    player.play();
+//    VideoState is("../bin/input.mp4");
+//    is.loop();
     return 0;
 }
 

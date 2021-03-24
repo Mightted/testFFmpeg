@@ -10,7 +10,7 @@
 //}
 //
 //#include "SDL.h"
-#include "SDL_thread.h"
+#include "SDL2/SDL_thread.h"
 #include "AVCommon.h"
 #include "Audio.h"
 #include "Video.h"
