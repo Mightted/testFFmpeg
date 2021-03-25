@@ -6,5 +6,8 @@
 
 MyFrame::MyFrame() {
     _frame = av_frame_alloc();
+}
 
+MyFrame::MyFrame(AVFrame * frame) {
+    _frame = frame;
 }

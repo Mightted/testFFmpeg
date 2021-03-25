@@ -12,8 +12,9 @@ extern "C" {
 class MyFrame {
 public:
     MyFrame();
-protected:
+    MyFrame(AVFrame* frame);
     AVFrame *_frame = nullptr;
+
 
 };
 

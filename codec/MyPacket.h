@@ -15,7 +15,7 @@ public:
     MyPacket();
 
     MyPacket(AVPacket *pkt);
-private:
+
     AVPacket *_packet = nullptr;
 
 };

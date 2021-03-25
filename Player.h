@@ -11,10 +11,11 @@
 class Player {
 private:
     DecodeHelper helper;
-    AVFormatContext *avFormatContext = nullptr;
+
 
 public:
-    void init(const char *path, int flag);
+    void init(char *path, int flag);
+
     void play();
 };
 

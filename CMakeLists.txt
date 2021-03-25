@@ -1,4 +1,4 @@
-IF(WIN32)
+IF (WIN32)
     cmake_minimum_required(VERSION 3.10.3)
     project(testFfmpeg)
 
@@ -28,7 +28,17 @@ IF(WIN32)
     add_executable(testFfmpeg main.cpp
             VideoState.h
             VideoState.cpp
-            AudioParams.cpp AudioParams.h AVCommon.cpp AVCommon.h Audio.cpp Audio.h Video.cpp Video.h codec/MyPacket.cpp codec/MyPacket.h codec/MyFrame.cpp codec/MyFrame.h codec/DecodeHelper.cpp codec/DecodeHelper.h Player.cpp Player.h)
+            AudioParams.cpp
+            AudioParams.h
+            AVCommon.cpp
+            AVCommon.h
+            Audio.cpp
+            Audio.h
+            Video.cpp
+            Video.h
+            codec/MyPacket.cpp codec/MyPacket.h codec/MyFrame.cpp codec/MyFrame.h codec/DecodeHelper.cpp codec/DecodeHelper.h
+            Player.cpp Player.h
+            display/SDLDisplay.cpp display/SDLDisplay.h)
 
     target_link_libraries(
             testFfmpeg
@@ -47,4 +57,4 @@ IF(WIN32)
     #set(CMAKE_EXE_LINKER_FLAGS -static)
     #target_link_libraries(testFfmpeg SDL/lib)
     #set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
-ENDIF()
+ENDIF ()
