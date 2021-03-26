@@ -10,6 +10,7 @@
 #include "queue"
 #include <iostream>
 #include <SDL2/SDL.h>
+#include "../AudioParams.h"
 
 using namespace std;
 
@@ -29,7 +30,11 @@ public:
 
     void swr_audio_frame(AVFrame *frame);
 
-    char* audio_buff = nullptr;
+    inline bool audio_need_update() {
+        return audio_buffer_size != 0 && audio_buffer_index >= audio_buffer_size;
+    };
+
+    char *audio_buff = nullptr;
     int audio_buffer_index = 0;
     int audio_buffer_size = 0;
 
@@ -45,6 +50,8 @@ private:
     void start_read_frame();
 
     void initCodec(AVCodecContext *codecContext, int stream_index);
+
+    void initSwr();
 
     inline void unref_pkt(AVPacket *pkt) {
         if (pkt != nullptr) {
@@ -80,10 +87,10 @@ private:
     SDL_threadID *subtitle_thread = nullptr;
 
     AVFormatContext *avFormatContext = nullptr;
+    struct SwrContext *swrContext = nullptr;
+    AudioParams *audioParams = nullptr;
+
     char *_path = nullptr;
-
-
-
 
 
     int stream_index_video = AVMEDIA_TYPE_UNKNOWN;

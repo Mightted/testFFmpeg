@@ -14,7 +14,7 @@ void SDLDisplay::initVideo(int flag, int width, int height) {
 
 }
 
-AudioParams SDLDisplay::initAudio(DecodeHelper *helper) {
+AudioParams *SDLDisplay::initAudio(DecodeHelper *helper) {
     if (helper->audioContext == nullptr) {
         return nullptr;
     }
@@ -31,7 +31,24 @@ AudioParams SDLDisplay::initAudio(DecodeHelper *helper) {
     wanted_spec.userdata = helper;
     wanted_spec.callback = sdl_audio_callback;
 
-//    SDL_OpenAudioDevice()
+    audioDeviceID = SDL_OpenAudioDevice(nullptr, 0, &wanted_spec, &spec,
+                                        SDL_AUDIO_ALLOW_FREQUENCY_CHANGE | SDL_AUDIO_ALLOW_CHANNELS_CHANGE);
+
+    if (audioDeviceID < 2) {
+        cout << "SDL_OpenAudioDevice faild:" << SDL_GetError() << endl;
+        return nullptr;
+    }
+
+    AudioParams *params = new AudioParams();
+    params->freq = spec.freq;
+    params->channels = spec.channels;
+    params->fmt = WANT_SAMPLE_FMT;
+    params->channel_layout = WANTED_CHANNEL_LAYOUT;
+    params->deviceID = audioDeviceID;
+
+    return params;
+//    SDL_PauseAudioDevice(audioDeviceID, 0);
+
 
 }
 
@@ -40,7 +57,14 @@ void SDLDisplay::sdl_audio_callback(void *opaque, Uint8 *stream, int len) {
     auto *helper = (DecodeHelper *) opaque;
     AVFrame *frame = nullptr;
     while (len > 0) {
-        if (helper->swr_audio_frame(frame))
+
+        if (helper->audio_need_update()) {
+            while (!helper->get_audio_frame(frame)) {
+                SDL_Delay(1);
+            }
+            helper->swr_audio_frame(frame);
+        }
+
 
     }
     int ret = helper->get_audio_frame(frame);

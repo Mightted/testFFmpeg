@@ -6,10 +6,11 @@
 #define TESTFFMPEG_AUDIOPARAMS_H
 
 
-#include <cstdint>
+#include <SDL2/SDL.h>
 
 extern "C" {
 #include "libavformat/avformat.h"
+#include "libswresample/swresample.h"
 };
 
 
@@ -19,8 +20,10 @@ public:
     int channels;
     int64_t channel_layout;
     AVSampleFormat fmt;
-    int frame_size;
+    SDL_AudioDeviceID deviceID;
+//    int frame_size;
     int bytes_per_sec;
+
 
 };
 

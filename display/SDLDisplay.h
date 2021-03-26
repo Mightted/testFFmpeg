@@ -22,12 +22,13 @@ class SDLDisplay {
 private:
     SDL_Window *window = nullptr;
     SDL_Renderer *renderer = nullptr;
+    SDL_AudioDeviceID audioDeviceID ;
 
     static void sdl_audio_callback(void *opaque, Uint8 *stream, int len);
 
 public:
     void initVideo(int flag, int width, int height);
-    AudioParams initAudio(DecodeHelper *helper);
+    AudioParams * initAudio(DecodeHelper *helper);
 
 };
 

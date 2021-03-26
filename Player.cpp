@@ -46,5 +46,5 @@ void Player::init(char *path, int flag) {
 }
 
 void Player::play() {
-    helper.loop_read_frame(avFormatContext);
+//    helper.loop_read_frame(avFormatContext);
 }

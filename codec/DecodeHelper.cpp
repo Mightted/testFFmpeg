@@ -262,3 +262,18 @@ int DecodeHelper::read_audio(void *arg) {
     }
 }
 
+void DecodeHelper::initSwr() {
+    if(audioParams == nullptr || audioContext == nullptr) {
+        return;
+    }
+    swr_alloc_set_opts(swrContext, audioParams->channel_layout, audioParams->fmt, audioParams->freq, audioContext->channel_layout,
+    audioContext->sample_fmt, audioContext->sample_rate, 0, nullptr);
+
+
+}
+
+void DecodeHelper::swr_audio_frame(AVFrame *frame) {
+
+
+}
+

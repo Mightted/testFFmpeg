@@ -64,7 +64,7 @@ bool Audio::sdl_init(void *vs, void(*callback)(void *, uint8_t *, int)) {
     params.channels = spec.channels;
     params.fmt = AV_SAMPLE_FMT_S16;
     params.channel_layout = wanted_channel_layout;
-    params.frame_size = av_samples_get_buffer_size(nullptr, params.channels, 1, params.fmt, 1);
+//    params.frame_size = av_samples_get_buffer_size(nullptr, params.channels, 1, params.fmt, 1);
     params.bytes_per_sec = av_samples_get_buffer_size(nullptr, params.channels, params.freq, params.fmt, 1);
 
     swrContext = swr_alloc_set_opts(NULL,  // we're allocating a new context
