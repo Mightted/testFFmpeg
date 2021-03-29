@@ -72,7 +72,8 @@ void SDLDisplay::playVideo(AVFrame *frame) {
                          frame->data[0], frame->linesize[0],
                          frame->data[1], frame->linesize[1],
                          frame->data[2], frame->linesize[2]);
-
+    SDL_RenderCopy(renderer, texture, nullptr, nullptr);
+    SDL_RenderPresent(renderer);
 }
 
 

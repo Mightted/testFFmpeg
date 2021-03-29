@@ -20,9 +20,6 @@ const int FLAG_INIT_SUBTITLE = 4;
 class TransferData {
 protected:
 
-    queue<MyPacket> queue_video;
-    queue<MyPacket> queue_audio;
-    queue<MyPacket> queue_subtitle;
 
     queue<MyFrame> video_frames;
     queue<MyFrame> audio_frames;
@@ -37,6 +34,11 @@ protected:
     MyFrame *frame_subtitle = nullptr;
 
 public:
+
+    queue<MyPacket> queue_video;
+    queue<MyPacket> queue_audio;
+    queue<MyPacket> queue_subtitle;
+
 
     AVCodecContext *audioContext = nullptr;
     AVCodecContext *videoContext = nullptr;

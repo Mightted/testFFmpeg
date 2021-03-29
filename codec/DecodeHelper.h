@@ -92,9 +92,10 @@ private:
     struct SwrContext *swrContext = nullptr;
     AudioParams *audioParams = nullptr;
     SDLDisplay display;
-    TransferData transferData;
+    TransferData *transferData = nullptr;
 
     char *_path = nullptr;
+    AVFrame *avFrame = nullptr;
 
 
     int stream_index_video = AVMEDIA_TYPE_UNKNOWN;

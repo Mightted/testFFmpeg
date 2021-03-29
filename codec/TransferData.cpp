@@ -56,6 +56,7 @@ bool TransferData::_pkt_pop(queue<MyPacket> &q, AVPacket *pkt) {
     MyPacket packet = q.front();
     pkt = packet._packet;
     unref_pkt(packet._packet);
+    q.pop();
     return true;
 
 }
