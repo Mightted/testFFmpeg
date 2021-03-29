@@ -7,9 +7,9 @@ using namespace std;
 
 
 int main(int argc, char *argv[]) {
-//    Player player;
-//    player.init("../bin/input.mp4", FLAG_INIT_VIDEO | FLAG_INIT_AUDIO);
-//    player.play();
+    Player player;
+    player.init("../bin/input.mp4", FLAG_INIT_VIDEO | FLAG_INIT_AUDIO);
+    player.play();
 
 //    VideoState is("../bin/input.mp4");
 //    is.loop();

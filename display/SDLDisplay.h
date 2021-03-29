@@ -6,8 +6,9 @@
 #define TESTFFMPEG_SDLDISPLAY_H
 
 #include "SDL2/SDL.h"
-#include "../codec/DecodeHelper.h"
+#include "../codec/TransferData.h"
 #include "../AudioParams.h"
+
 extern "C" {
 #include <libavformat/avformat.h>
 };
@@ -22,13 +23,19 @@ class SDLDisplay {
 private:
     SDL_Window *window = nullptr;
     SDL_Renderer *renderer = nullptr;
-    SDL_AudioDeviceID audioDeviceID ;
+    SDL_Texture *texture = nullptr;
+    SDL_AudioDeviceID audioDeviceID;
 
     static void sdl_audio_callback(void *opaque, Uint8 *stream, int len);
 
 public:
-    void initVideo(int flag, int width, int height);
-    AudioParams * initAudio(DecodeHelper *helper);
+    void initVideo(int width, int height);
+
+    AudioParams *initAudio(TransferData *transferData);
+
+    void playVideo(AVFrame *frame);
+
+    bool initSDL(int flag);
 
 };
 

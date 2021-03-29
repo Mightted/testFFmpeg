@@ -42,9 +42,28 @@ void Player::init(char *path, int flag) {
 //    }
 
     helper.init(path, flag);
+    helper.start_read_frame();
 
 }
 
 void Player::play() {
+    bool doExit = false;
+
+    SDL_Event event;
+    while (!doExit) {
+//        cout << "loop" << endl;
+        SDL_PumpEvents();
+        while (!SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT)) {
+            helper.video_refresh();
+            SDL_PumpEvents();
+        }
+        switch (event.type) {
+            case SDL_QUIT:
+                doExit = true;
+                break;
+            default:
+                break;
+        }
+    }
 //    helper.loop_read_frame(avFormatContext);
 }

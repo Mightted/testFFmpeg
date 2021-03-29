@@ -5,30 +5,29 @@
 #include "SDLDisplay.h"
 
 
-void SDLDisplay::initVideo(int flag, int width, int height) {
-    SDL_Init(flag);
+void SDLDisplay::initVideo(int width, int height) {
     int flags = SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_RESIZABLE;
     window = SDL_CreateWindow("testFFmpeg", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, flags);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_IYUV, SDL_TEXTUREACCESS_STREAMING, width, height);
 
 }
 
-AudioParams *SDLDisplay::initAudio(DecodeHelper *helper) {
-    if (helper->audioContext == nullptr) {
+AudioParams *SDLDisplay::initAudio(TransferData *transferData) {
+    if (transferData->audioContext == nullptr) {
         return nullptr;
     }
     SDL_AudioSpec wanted_spec, spec;
     int wanted_nb_channel = av_get_channel_layout_nb_channels(WANTED_CHANNEL_LAYOUT);
 
-    av_samples_get_buffer_size(nullptr, wanted_nb_channel, helper->audioContext->frame_size, WANT_SAMPLE_FMT, 1);
+    av_samples_get_buffer_size(nullptr, wanted_nb_channel, transferData->audioContext->frame_size, WANT_SAMPLE_FMT, 1);
 
     wanted_spec.format = AUDIO_S16SYS;
     wanted_spec.channels = wanted_nb_channel;
     wanted_spec.freq = WANTED_SAMPLE_SIZE;
     wanted_spec.silence = 0;
     wanted_spec.samples = WANT_SAMPLE_BUFFER_SIZE;
-    wanted_spec.userdata = helper;
+    wanted_spec.userdata = transferData;
     wanted_spec.callback = sdl_audio_callback;
 
     audioDeviceID = SDL_OpenAudioDevice(nullptr, 0, &wanted_spec, &spec,
@@ -53,21 +52,43 @@ AudioParams *SDLDisplay::initAudio(DecodeHelper *helper) {
 }
 
 
+bool SDLDisplay::initSDL(int flag) {
+    int actual_flag = SDL_INIT_TIMER;
+    if ((flag & FLAG_INIT_VIDEO) == FLAG_INIT_VIDEO) {
+        actual_flag |= SDL_INIT_VIDEO;
+    }
+    if ((flag & FLAG_INIT_AUDIO) == FLAG_INIT_AUDIO) {
+        actual_flag |= SDL_INIT_AUDIO;
+    }
+
+    return SDL_Init(actual_flag) == 0;
+}
+
+
+void SDLDisplay::playVideo(AVFrame *frame) {
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderClear(renderer);
+    SDL_UpdateYUVTexture(texture, nullptr,
+                         frame->data[0], frame->linesize[0],
+                         frame->data[1], frame->linesize[1],
+                         frame->data[2], frame->linesize[2]);
+
+}
+
+
 void SDLDisplay::sdl_audio_callback(void *opaque, Uint8 *stream, int len) {
-    auto *helper = (DecodeHelper *) opaque;
+    auto *data = (TransferData *) opaque;
     AVFrame *frame = nullptr;
     while (len > 0) {
 
-        if (helper->audio_need_update()) {
-            while (!helper->get_audio_frame(frame)) {
+        if (data->audio_need_update()) {
+            while (!data->get_audio_frame(frame)) {
                 SDL_Delay(1);
             }
-            helper->swr_audio_frame(frame);
+            data->swr_audio_frame(frame);
         }
-
-
     }
-    int ret = helper->get_audio_frame(frame);
+    int ret = data->get_audio_frame(frame);
 
 }
 
