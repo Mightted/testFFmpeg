@@ -24,7 +24,7 @@ void DecodeHelper::start_read_frame() {
         SDL_CreateThread(read_video, "video_thread", transferData);
     }
     if (stream_index_audio != AVMEDIA_TYPE_UNKNOWN) {
-        SDL_CreateThread(read_audio, "audio_thread", &transferData);
+        SDL_CreateThread(read_audio, "audio_thread", transferData);
     }
 
     // subtitle暂时不写
@@ -32,8 +32,13 @@ void DecodeHelper::start_read_frame() {
 
 
 void DecodeHelper::video_refresh() {
-    transferData->frame_pop(AVMEDIA_TYPE_VIDEO, avFrame);
-    display.playVideo(avFrame);
+
+    if (transferData->frame_pop(AVMEDIA_TYPE_VIDEO, avFrame)) {
+        display.playVideo(avFrame);
+    } else {
+//        cout << "frame is null!!!" << endl;
+    }
+
 }
 
 
@@ -52,21 +57,22 @@ void DecodeHelper::initAvFormat(int flag) {
         stream->discard = AVDISCARD_ALL;
         switch (stream->codecpar->codec_type) {
             case AVMEDIA_TYPE_VIDEO:
-                if (stream_index_video == AVMEDIA_TYPE_UNKNOWN && flag & FLAG_INIT_VIDEO) {
+                if (stream_index_video == AVMEDIA_TYPE_UNKNOWN && (flag & FLAG_INIT_VIDEO) == FLAG_INIT_VIDEO) {
                     stream->discard = AVDISCARD_DEFAULT;
                     new_flag |= FLAG_INIT_VIDEO;
                     stream_index_video = i;
                 }
                 break;
             case AVMEDIA_TYPE_AUDIO:
-                if (stream_index_audio == AVMEDIA_TYPE_UNKNOWN && flag & FLAG_INIT_AUDIO) {
+                if (stream_index_audio == AVMEDIA_TYPE_UNKNOWN && (flag & FLAG_INIT_AUDIO) == FLAG_INIT_AUDIO) {
                     stream->discard = AVDISCARD_DEFAULT;
                     new_flag |= FLAG_INIT_AUDIO;
                     stream_index_audio = i;
                 }
                 break;
             case AVMEDIA_TYPE_SUBTITLE:
-                if (stream_index_subtitle == AVMEDIA_TYPE_UNKNOWN && flag & FLAG_INIT_SUBTITLE) {
+                if (stream_index_subtitle == AVMEDIA_TYPE_UNKNOWN &&
+                    (flag & FLAG_INIT_SUBTITLE) == FLAG_INIT_SUBTITLE) {
                     stream->discard = AVDISCARD_DEFAULT;
                     new_flag |= FLAG_INIT_SUBTITLE;
                     stream_index_subtitle = i;
@@ -92,7 +98,7 @@ void DecodeHelper::initAvFormat(int flag) {
             av_log(nullptr, AV_LOG_ERROR, "create audio param failed \n");
             return;
         }
-        initSwr();
+        transferData->initSwr(*audioParams);
     }
     if ((new_flag & FLAG_INIT_SUBTITLE) == FLAG_INIT_SUBTITLE) {
 //        _init_pkt_frame(pkt_subtitle, frame_subtitle);
@@ -194,6 +200,7 @@ int DecodeHelper::loop_read_frame(void *arg) {
 //                break;
 //        }
     }
+    return 0;
 }
 
 //void DecodeHelper::pkt_push(queue<MyPacket> &q, AVPacket *pkt) {
@@ -243,25 +250,28 @@ int DecodeHelper::loop_read_frame(void *arg) {
 
 int DecodeHelper::read_video(void *arg) {
     auto *helper = (TransferData *) arg;
-    AVPacket *pkt = av_packet_alloc();
+    AVPacket pkt;
     AVFrame *frame = av_frame_alloc();
     char error[1024];
     int ret;
     for (;;) {
-        cout << "read_video" << endl;
         ret = avcodec_receive_frame(helper->videoContext, frame);
         switch (ret) {
             case 0:
+                cout << "read_video" << endl;
                 helper->frame_push(AVMEDIA_TYPE_VIDEO, frame);
                 break;
             case AVERROR(EAGAIN):
-                if (helper->pkt_pop(AVMEDIA_TYPE_VIDEO, pkt)) {
-                    if (avcodec_send_packet(helper->videoContext, pkt) == AVERROR(EAGAIN)) {
+                if (helper->pkt_pop(AVMEDIA_TYPE_VIDEO, &pkt)) {
+                    if (avcodec_send_packet(helper->videoContext, &pkt) == AVERROR(EAGAIN)) {
                         cout << "READ VIDEO ERROR!!!!!!!!!!!" << endl;
                         return 0;
                     } else {
-                        av_packet_unref(pkt);
+                        av_packet_unref(&pkt);
                     }
+                } else {
+                    cout << "pkt is null" << endl;
+                    SDL_Delay(10);
                 }
                 break;
             case AVERROR_EOF:
@@ -278,7 +288,7 @@ int DecodeHelper::read_video(void *arg) {
 
 int DecodeHelper::read_audio(void *arg) {
     auto *helper = (TransferData *) arg;
-    AVPacket *pkt = av_packet_alloc();
+    AVPacket pkt;
     AVFrame *frame = av_frame_alloc();
     char error[1024];
     int ret;
@@ -286,16 +296,20 @@ int DecodeHelper::read_audio(void *arg) {
         ret = avcodec_receive_frame(helper->audioContext, frame);
         switch (ret) {
             case 0:
+                cout << "receive a frame" << endl;
                 helper->frame_push(AVMEDIA_TYPE_AUDIO, frame);
                 break;
             case AVERROR(EAGAIN):
-                if (helper->pkt_pop(AVMEDIA_TYPE_AUDIO, pkt)) {
-                    if (avcodec_send_packet(helper->audioContext, pkt) == AVERROR(EAGAIN)) {
+                if (helper->pkt_pop(AVMEDIA_TYPE_AUDIO, &pkt)) {
+                    if (avcodec_send_packet(helper->audioContext, &pkt) == AVERROR(EAGAIN)) {
                         cout << "READ AUDIO ERROR!!!!!!!!!!!" << endl;
                         return 0;
                     } else {
-                        av_packet_unref(pkt);
+                        cout << "send a pkt" << endl;
+                        av_packet_unref(&pkt);
                     }
+                } else {
+                    SDL_Delay(10);
                 }
                 break;
             case AVERROR_EOF:
@@ -310,24 +324,24 @@ int DecodeHelper::read_audio(void *arg) {
     }
 }
 
-void DecodeHelper::initSwr() {
-    if (audioParams == nullptr || transferData->audioContext == nullptr) {
-        return;
-    }
-    swrContext = swr_alloc_set_opts(nullptr,
-                                    audioParams->channel_layout,
-                                    audioParams->fmt,
-                                    audioParams->freq,
-                                    transferData->audioContext->channel_layout,
-                                    transferData->audioContext->sample_fmt,
-                                    transferData->audioContext->sample_rate,
-                                    0, nullptr);
-    if (swrContext == nullptr) {
-        cout << "swr_alloc_set_opts failed" << endl;
-        return;
-    }
-    swr_init(swrContext);
-}
+//void DecodeHelper::initSwr() {
+//    if (audioParams == nullptr || transferData->audioContext == nullptr) {
+//        return;
+//    }
+//    swrContext = swr_alloc_set_opts(nullptr,
+//                                    audioParams->channel_layout,
+//                                    audioParams->fmt,
+//                                    audioParams->freq,
+//                                    transferData->audioContext->channel_layout,
+//                                    transferData->audioContext->sample_fmt,
+//                                    transferData->audioContext->sample_rate,
+//                                    0, nullptr);
+//    if (swrContext == nullptr) {
+//        cout << "swr_alloc_set_opts failed" << endl;
+//        return;
+//    }
+//    swr_init(swrContext);
+//}
 
 //void DecodeHelper::swr_audio_frame(AVFrame *frame) {
 //

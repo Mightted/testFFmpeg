@@ -6,7 +6,7 @@
 
 
 void SDLDisplay::initVideo(int width, int height) {
-    int flags = SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_RESIZABLE;
+    int flags = SDL_WINDOW_RESIZABLE;
     window = SDL_CreateWindow("testFFmpeg", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, flags);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_IYUV, SDL_TEXTUREACCESS_STREAMING, width, height);
@@ -20,7 +20,9 @@ AudioParams *SDLDisplay::initAudio(TransferData *transferData) {
     SDL_AudioSpec wanted_spec, spec;
     int wanted_nb_channel = av_get_channel_layout_nb_channels(WANTED_CHANNEL_LAYOUT);
 
-    av_samples_get_buffer_size(nullptr, wanted_nb_channel, transferData->audioContext->frame_size, WANT_SAMPLE_FMT, 1);
+    transferData->audio_buffer_size = av_samples_get_buffer_size(nullptr, wanted_nb_channel,
+                                                                 transferData->audioContext->frame_size,
+                                                                 WANT_SAMPLE_FMT, 1);
 
     wanted_spec.format = AUDIO_S16SYS;
     wanted_spec.channels = wanted_nb_channel;
@@ -79,17 +81,28 @@ void SDLDisplay::playVideo(AVFrame *frame) {
 
 void SDLDisplay::sdl_audio_callback(void *opaque, Uint8 *stream, int len) {
     auto *data = (TransferData *) opaque;
-    AVFrame *frame = nullptr;
+    int len1;
+//    AVFrame *frame = nullptr;
+//    cout << "sdl_audio_callback" << endl;
     while (len > 0) {
 
         if (data->audio_need_update()) {
-            while (!data->get_audio_frame(frame)) {
+            while (!data->get_audio_frame()) {
                 SDL_Delay(1);
             }
-            data->swr_audio_frame(frame);
+            if (data->swr_audio_frame() == 0) {
+                continue;
+            }
         }
+        len1 = (data->audio_buffer_size - data->audio_buffer_index) < len ?
+              data->audio_buffer_size - data->audio_buffer_index : len;
+        cout << "play audio" << endl;
+        memset(stream, 0, len1);
+        SDL_MixAudioFormat(stream, data->audio_buff + data->audio_buffer_index, AUDIO_S16SYS, len1, SDL_MIX_MAXVOLUME);
+        data->audio_buffer_index += len1;
+        len -= len1;
+        stream += len1;
     }
-    int ret = data->get_audio_frame(frame);
 
 }
 

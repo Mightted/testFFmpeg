@@ -7,8 +7,11 @@
 
 #include "MyPacket.h"
 #include "MyFrame.h"
+#include "../AudioParams.h"
 #include <iostream>
+#include <SDL2/SDL_thread.h>
 #include "queue"
+
 using namespace std;
 
 const int QUEUE_MAX_PKT = 10;
@@ -30,7 +33,7 @@ protected:
     MyPacket *pkt_subtitle = nullptr;
 
     MyFrame *frame_video = nullptr;
-    MyFrame *frame_audio = nullptr;
+    AVFrame audio_frame;
     MyFrame *frame_subtitle = nullptr;
 
 public:
@@ -43,10 +46,13 @@ public:
     AVCodecContext *audioContext = nullptr;
     AVCodecContext *videoContext = nullptr;
     AVCodecContext *subtitleContext = nullptr;
+    SDL_mutex *video_pkt_mutex, *audio_pkt_mutex, *subtitle_pkt_mutex, *video_mutex, *audio_mutex, *subtitle_mutex;
 
-    char *audio_buff = nullptr;
+    uint8_t *audio_buff = nullptr;
     int audio_buffer_index = 0;
     int audio_buffer_size = 0;
+
+    TransferData();
 
     void init_pkt_frame(MyPacket *pkt, MyFrame *frame);
 
@@ -60,10 +66,11 @@ public:
 
     bool frame_pop(AVMediaType type, AVFrame *frame);
 
+    void initSwr(AudioParams params);
 
-    bool get_audio_frame(AVFrame *frame);
+    bool get_audio_frame();
 
-    void swr_audio_frame(AVFrame *frame);
+    int swr_audio_frame();
 
 
     inline void unref_frame(AVFrame *frame) {
@@ -79,17 +86,20 @@ public:
     }
 
     inline bool audio_need_update() {
-        return audio_buffer_size != 0 && audio_buffer_index >= audio_buffer_size;
+        return audio_buff == nullptr || (audio_buffer_size != 0 && audio_buffer_index >= audio_buffer_size);
     };
 
 private:
-    void _pkt_push(queue<MyPacket> &q, AVPacket *pkt);
 
-    bool _pkt_pop(queue<MyPacket> &q, AVPacket *pkt);
+    struct SwrContext *swrContext = nullptr;
 
-    void _frame_push(queue<MyFrame> &q, AVFrame *frame);
+    void _pkt_push(queue<MyPacket> &q, AVPacket *pkt, SDL_mutex *mutex);
 
-    bool _frame_pop(queue<MyFrame> &q, AVFrame *frame);
+    bool _pkt_pop(queue<MyPacket> &q, AVPacket *pkt, SDL_mutex *mutex);
+
+    void _frame_push(queue<MyFrame> &q, AVFrame *frame, SDL_mutex *mutex);
+
+    bool _frame_pop(queue<MyFrame> &q, AVFrame *frame, SDL_mutex *mutex);
 
 };
 

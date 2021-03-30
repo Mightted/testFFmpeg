@@ -3,11 +3,11 @@
 //
 
 #include "MyPacket.h"
-
-MyPacket::MyPacket() {
-    _packet = av_packet_alloc();
-}
+//
+//MyPacket::MyPacket() {
+//    _packet = av_packet_alloc();
+//}
 
 MyPacket::MyPacket(AVPacket *pkt) {
-    _packet = pkt;
+    av_packet_ref(&_packet, pkt);
 }

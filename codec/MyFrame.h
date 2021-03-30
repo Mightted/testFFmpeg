@@ -7,12 +7,15 @@
 
 extern "C" {
 #include <libavformat/avformat.h>
+#include <libswresample/swresample.h>
 };
 
 class MyFrame {
 public:
     MyFrame();
-    MyFrame(AVFrame* frame);
+
+    MyFrame(AVFrame *frame);
+
     AVFrame *_frame = nullptr;
 
 

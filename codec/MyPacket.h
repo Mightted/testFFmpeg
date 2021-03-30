@@ -12,11 +12,11 @@ extern "C" {
 
 class MyPacket {
 public:
-    MyPacket();
+//    MyPacket();
 
     MyPacket(AVPacket *pkt);
 
-    AVPacket *_packet = nullptr;
+    AVPacket _packet;
 
 };
 

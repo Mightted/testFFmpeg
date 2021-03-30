@@ -52,7 +52,7 @@ private:
 
     AVCodecContext *initCodec(int stream_index);
 
-    void initSwr();
+//    void initSwr();
 
 //    inline void unref_pkt(AVPacket *pkt) {
 //        if (pkt != nullptr) {
@@ -89,7 +89,7 @@ private:
     SDL_threadID *read_thread = nullptr;
 
     AVFormatContext *avFormatContext = nullptr;
-    struct SwrContext *swrContext = nullptr;
+//    struct SwrContext *swrContext = nullptr;
     AudioParams *audioParams = nullptr;
     SDLDisplay display;
     TransferData *transferData = nullptr;
