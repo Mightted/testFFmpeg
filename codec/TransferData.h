@@ -33,11 +33,11 @@ protected:
     MyPacket *pkt_subtitle = nullptr;
 
     MyFrame *frame_video = nullptr;
-    AVFrame audio_frame;
     MyFrame *frame_subtitle = nullptr;
 
 public:
 
+    AVFrame audio_frame;
     queue<MyPacket> queue_video;
     queue<MyPacket> queue_audio;
     queue<MyPacket> queue_subtitle;
@@ -55,6 +55,8 @@ public:
     TransferData();
 
     void init_pkt_frame(MyPacket *pkt, MyFrame *frame);
+
+    void log_error(int ret);
 
     bool enough_pkt();
 
@@ -92,6 +94,8 @@ public:
 private:
 
     struct SwrContext *swrContext = nullptr;
+
+    char error[1024];
 
     void _pkt_push(queue<MyPacket> &q, AVPacket *pkt, SDL_mutex *mutex);
 

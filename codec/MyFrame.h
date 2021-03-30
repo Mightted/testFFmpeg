@@ -12,11 +12,12 @@ extern "C" {
 
 class MyFrame {
 public:
-    MyFrame();
+//    MyFrame();
 
     MyFrame(AVFrame *frame);
 
     AVFrame *_frame = nullptr;
+    int pts;
 
 
 };

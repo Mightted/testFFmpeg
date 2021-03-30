@@ -16,7 +16,7 @@ TransferData::TransferData() {
 
 void TransferData::init_pkt_frame(MyPacket *pkt, MyFrame *frame) {
 //    pkt = new MyPacket();
-    frame = new MyFrame();
+//    frame = new MyFrame();
 }
 
 
@@ -98,6 +98,7 @@ void TransferData::frame_push(AVMediaType type, AVFrame *frame) {
 void TransferData::_frame_push(queue<MyFrame> &q, AVFrame *frame, SDL_mutex *mutex) {
     SDL_LockMutex(mutex);
     MyFrame p(frame);
+    p.pts = frame->pts;
     q.push(p);
     unref_frame(frame);
     SDL_UnlockMutex(mutex);
@@ -174,10 +175,19 @@ int TransferData::swr_audio_frame() {
     if (swrContext == nullptr) {
         return 0;
     }
-    if (swr_convert(swrContext, &audio_buff, 192000, (const uint8_t **) audio_frame.data, audio_frame.nb_samples) == 0) {
+    int ret = swr_convert(swrContext, &audio_buff, 192000, (const uint8_t **) audio_frame.data, audio_frame.nb_samples);
+    if ( ret <= 0) {
+        cout << "swr_convert failed" <<  endl;
+        log_error(ret);
         return 0;
     }
 //    audio_buffer_size = size;
     audio_buffer_index = 0;
     return audio_buffer_size;
+}
+
+
+void TransferData::log_error(int ret) {
+    av_strerror(ret, error, sizeof(error));
+    cout << error << endl;
 }

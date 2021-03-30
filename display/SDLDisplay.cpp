@@ -28,7 +28,8 @@ AudioParams *SDLDisplay::initAudio(TransferData *transferData) {
     wanted_spec.channels = wanted_nb_channel;
     wanted_spec.freq = WANTED_SAMPLE_SIZE;
     wanted_spec.silence = 0;
-    wanted_spec.samples = WANT_SAMPLE_BUFFER_SIZE;
+//    wanted_spec.samples = WANT_SAMPLE_BUFFER_SIZE;
+    wanted_spec.samples = transferData->audioContext->frame_size;
     wanted_spec.userdata = transferData;
     wanted_spec.callback = sdl_audio_callback;
 
@@ -83,11 +84,12 @@ void SDLDisplay::sdl_audio_callback(void *opaque, Uint8 *stream, int len) {
     auto *data = (TransferData *) opaque;
     int len1;
 //    AVFrame *frame = nullptr;
-//    cout << "sdl_audio_callback" << endl;
+    cout << "sdl_audio_callback" << endl;
     while (len > 0) {
-
+        cout << "loop1" << endl;
         if (data->audio_need_update()) {
             while (!data->get_audio_frame()) {
+                cout << "loop2" << endl;
                 SDL_Delay(1);
             }
             if (data->swr_audio_frame() == 0) {
@@ -95,7 +97,7 @@ void SDLDisplay::sdl_audio_callback(void *opaque, Uint8 *stream, int len) {
             }
         }
         len1 = (data->audio_buffer_size - data->audio_buffer_index) < len ?
-              data->audio_buffer_size - data->audio_buffer_index : len;
+               data->audio_buffer_size - data->audio_buffer_index : len;
         cout << "play audio" << endl;
         memset(stream, 0, len1);
         SDL_MixAudioFormat(stream, data->audio_buff + data->audio_buffer_index, AUDIO_S16SYS, len1, SDL_MIX_MAXVOLUME);

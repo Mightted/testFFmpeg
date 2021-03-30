@@ -140,9 +140,9 @@ int DecodeHelper::loop_read_frame(void *arg) {
 //    int index;
     AVPacket *pkt_raw = av_packet_alloc();
     for (;;) {
-        cout << "loop" << endl;
+//        cout << "loop" << endl;
         if (helper->transferData->enough_pkt()) {
-            cout << "packets are full!!" << endl;
+//            cout << "packets are full!!" << endl;
             SDL_Delay(10);
             continue;
         }
@@ -160,6 +160,7 @@ int DecodeHelper::loop_read_frame(void *arg) {
             continue;
         }
 
+//        cout << "push pkt" << endl;
 //        int index = pkt_raw->stream_index;
 //        cout << index << ":" << pkt_raw->stream_index << endl;
         if (pkt_raw->stream_index == helper->stream_index_video) {
@@ -296,16 +297,17 @@ int DecodeHelper::read_audio(void *arg) {
         ret = avcodec_receive_frame(helper->audioContext, frame);
         switch (ret) {
             case 0:
-                cout << "receive a frame" << endl;
+//                cout << "receive a frame" << endl;
                 helper->frame_push(AVMEDIA_TYPE_AUDIO, frame);
                 break;
             case AVERROR(EAGAIN):
                 if (helper->pkt_pop(AVMEDIA_TYPE_AUDIO, &pkt)) {
+//                    cout << "pop pkt" << endl;
                     if (avcodec_send_packet(helper->audioContext, &pkt) == AVERROR(EAGAIN)) {
                         cout << "READ AUDIO ERROR!!!!!!!!!!!" << endl;
                         return 0;
                     } else {
-                        cout << "send a pkt" << endl;
+//                        cout << "successful" << endl;
                         av_packet_unref(&pkt);
                     }
                 } else {
