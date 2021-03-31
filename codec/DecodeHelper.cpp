@@ -33,14 +33,20 @@ void DecodeHelper::start_read_frame() {
 
 void DecodeHelper::video_refresh() {
 
+    if (avFrame == nullptr) {
+        transferData->frame_pop(AVMEDIA_TYPE_VIDEO, avFrame);
+    }
+
     if (!video_frame_update(avFrame)) {
+        cout << "it is not time" << endl;
         return;
     }
-    if (transferData->frame_pop(AVMEDIA_TYPE_VIDEO, avFrame)) {
-        display.playVideo(avFrame);
-    } else {
-//        cout << "frame is null!!!" << endl;
+    display.playVideo(avFrame);
+    if (avFrame->pts != AV_NOPTS_VALUE && avFrame->pts >= 0) {
+        last_pts = avFrame->pts;
     }
+
+    transferData->frame_pop(AVMEDIA_TYPE_VIDEO, avFrame);
 
 }
 
@@ -49,10 +55,21 @@ bool DecodeHelper::video_frame_update(AVFrame *frame) {
     if (frame == nullptr) {
         return true;
     }
-    double time = av_rescale_q((frame->pts + 1), video_time_base, AV_TIME_BASE_Q);
-    cout << "pts:" << frame->pts << endl;
-    cout << "time:" << time << ", av_gettime_relative:" << av_gettime_relative() << endl;
-    return (play_start_time + av_rescale_q((frame->pts + 1), video_time_base, AV_TIME_BASE_Q)) < av_gettime_relative();
+    double time = av_rescale_q(frame->pts, video_time_base, AV_TIME_BASE_Q);
+//    cout << "pts:" << frame->pts << endl;
+//    cout << "time:" << time << ", av_gettime_relative:" << av_gettime_relative() << endl;
+//    av_rescale_q((frame->pts - last_pts), video_time_base, AV_TIME_BASE_Q)
+    cout << "play_start_time:" << play_start_time << endl;
+    cout << "second params:" << av_q2d(video_time_base) * (frame->pts - last_pts) << endl;
+    cout << "av_gettime_relative:" << av_gettime_relative() << endl;
+    cout << "psts??:" << frame->pts - last_pts << endl;
+    cout << "frame pts :" << frame->pts << endl;
+    cout << "last_pts" << last_pts << endl;
+    cout << "av_q2d(video_time_base):" << av_q2d(video_time_base) << endl;
+    cout << "av_rescale_q(frame->pts, video_time_base, AV_TIME_BASE_Q)"
+         << av_rescale_q(frame->pts, video_time_base, AV_TIME_BASE_Q) << endl;
+    return (play_start_time + av_q2d(video_time_base) * last_pts) <
+           av_gettime_relative();
 
 //    return (play_start_time + (frame->pts + 1) * av_q2d(video_time_base)) < av_gettime_relative();
 }

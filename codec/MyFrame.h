@@ -18,7 +18,7 @@ public:
     MyFrame(AVFrame *frame);
 
     AVFrame *_frame = nullptr;
-    int pts;
+    double pts = 0;
 
 
 };

@@ -101,6 +101,7 @@ private:
 
     char *_path = nullptr;
     AVFrame *avFrame = nullptr;
+    double last_pts = 0;
     long play_start_time = 0;
     long frame_time;
     AVRational video_time_base = AVRational{0, 1};
