@@ -33,12 +33,28 @@ void DecodeHelper::start_read_frame() {
 
 void DecodeHelper::video_refresh() {
 
+    if (!video_frame_update(avFrame)) {
+        return;
+    }
     if (transferData->frame_pop(AVMEDIA_TYPE_VIDEO, avFrame)) {
         display.playVideo(avFrame);
     } else {
 //        cout << "frame is null!!!" << endl;
     }
 
+}
+
+
+bool DecodeHelper::video_frame_update(AVFrame *frame) {
+    if (frame == nullptr) {
+        return true;
+    }
+    double time = av_rescale_q((frame->pts + 1), video_time_base, AV_TIME_BASE_Q);
+    cout << "pts:" << frame->pts << endl;
+    cout << "time:" << time << ", av_gettime_relative:" << av_gettime_relative() << endl;
+    return (play_start_time + av_rescale_q((frame->pts + 1), video_time_base, AV_TIME_BASE_Q)) < av_gettime_relative();
+
+//    return (play_start_time + (frame->pts + 1) * av_q2d(video_time_base)) < av_gettime_relative();
 }
 
 
@@ -61,6 +77,7 @@ void DecodeHelper::initAvFormat(int flag) {
                     stream->discard = AVDISCARD_DEFAULT;
                     new_flag |= FLAG_INIT_VIDEO;
                     stream_index_video = i;
+                    video_time_base = av_guess_frame_rate(avFormatContext, stream, nullptr);
                 }
                 break;
             case AVMEDIA_TYPE_AUDIO:

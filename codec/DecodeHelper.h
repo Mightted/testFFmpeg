@@ -27,6 +27,12 @@ public:
 
     void video_refresh();
 
+    inline void update_start_time() {
+        play_start_time = av_gettime_relative();
+    }
+
+    bool video_frame_update(AVFrame *frame);
+
 //    bool get_audio_frame(AVFrame *frame);
 //
 //    void swr_audio_frame(AVFrame *frame);
@@ -47,7 +53,6 @@ public:
 private:
 
     void initAvFormat(int flag);
-
 
 
     AVCodecContext *initCodec(int stream_index);
@@ -96,6 +101,9 @@ private:
 
     char *_path = nullptr;
     AVFrame *avFrame = nullptr;
+    long play_start_time = 0;
+    long frame_time;
+    AVRational video_time_base = AVRational{0, 1};
 
 
     int stream_index_video = AVMEDIA_TYPE_UNKNOWN;

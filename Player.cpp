@@ -15,6 +15,7 @@ void Player::play() {
     bool doExit = false;
 
     SDL_Event event;
+    helper.update_start_time();
     while (!doExit) {
         SDL_PumpEvents();
         while (!SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT)) {
